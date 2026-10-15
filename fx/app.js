@@ -63,6 +63,7 @@
   const historyListEl = document.getElementById('history-list');
   const clearHistoryBtn = document.getElementById('clear-history-btn');
   const installBtn = document.getElementById('install-btn');
+  const shareBtn = document.getElementById('share-btn');
 
   // --- Persistence ---
   function loadState() {
@@ -822,6 +823,34 @@
     deferredInstallPrompt = null;
     installBtn.classList.add('hidden');
   });
+
+  if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+      const shareData = {
+        title: 'Travel FX Converter',
+        text: 'Simple offline-ready travel currency converter with saved FX rates & conversion history.',
+        url: window.location.href
+      };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          return;
+        } catch {
+          // User cancelled native share sheet
+          return;
+        }
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          renderStatusSubtitle('Link copied to clipboard!', 'ok');
+          setTimeout(() => renderStatusSubtitle(), 2500);
+        } catch {
+          // Ignore clipboard error
+        }
+      }
+    });
+  }
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

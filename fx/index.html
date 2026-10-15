@@ -7,23 +7,46 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="description" content="Simple offline-ready travel currency converter for up to 3 target currencies with persisted FX rates and history." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Travel FX Converter" />
+  <meta property="og:description" content="Offline-ready travel currency converter for up to 3 target currencies with persisted FX rates and conversion history." />
+  <meta property="og:url" content="https://glotoff.github.io/fx/" />
+  <meta property="og:image" content="https://glotoff.github.io/fx/og-image.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Travel FX Converter" />
+  <meta name="twitter:description" content="Offline-ready travel currency converter for up to 3 target currencies with persisted FX rates and conversion history." />
+  <meta name="twitter:image" content="https://glotoff.github.io/fx/og-image.png" />
   <title>Travel FX Converter</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="./icon.svg" />
-  <link rel="apple-touch-icon" href="./icon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div class="app-container">
     <header class="app-header">
       <div class="brand">
-        <img src="./icon.svg" alt="" class="brand-icon" width="28" height="28" />
+        <img src="./icon.svg" alt="" class="brand-icon" width="34" height="34" />
         <div>
           <h1 class="brand-title">Travel FX</h1>
           <p class="brand-subtitle" id="rate-status-text">Saved rates • Offline ready</p>
         </div>
       </div>
       <div class="header-actions">
+        <button type="button" id="share-btn" class="btn-icon" title="Share app" aria-label="Share Travel FX">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+        </button>
         <button type="button" id="install-btn" class="btn-install hidden" aria-label="Install app on device">
           Install App
         </button>
