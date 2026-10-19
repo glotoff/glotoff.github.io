@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Historical Khiva — Interactive Geotagged Atlas of Itchan Kala</title>
   <!-- Leaflet & Plugins -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -11,9 +11,18 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app-layout">
-    <!-- Left Sidebar: Historical Monuments & Geotagged Gallery -->
-    <aside class="sidebar">
+  <div class="app-layout" id="appLayout">
+    <!-- Left Sidebar: Historical Monuments & Geotagged Gallery (Drawer on mobile) -->
+    <aside class="sidebar" id="sidebarDrawer">
+      <!-- Mobile Drawer Handle & Close Header -->
+      <div class="mobile-drawer-header">
+        <div class="drawer-handle-bar"></div>
+        <div class="drawer-header-row">
+          <span class="drawer-title" id="drawerTitle">Historical Monuments (17)</span>
+          <button type="button" class="drawer-close-btn" id="drawerCloseBtn" aria-label="Close drawer">✕ Close</button>
+        </div>
+      </div>
+
       <div class="hero-banner">
         <!-- MANDATORY: Elevate priority for the LCP candidate image without loading="lazy" -->
         <img
@@ -26,7 +35,7 @@
         <div class="hero-overlay">
           <span class="unesco-badge">UNESCO World Heritage • Itchan Kala</span>
           <h1 class="hero-title">Historical Khiva Atlas</h1>
-          <p class="hero-subtitle">770 Geotagged Photos &amp; First-Person Videos • Oct 14–15, 2026</p>
+          <p class="hero-subtitle">770 Geotagged Photos &amp; POV Videos • Oct 14–15, 2026</p>
         </div>
       </div>
 
@@ -51,16 +60,16 @@
       </div>
 
       <!-- Filter Controls -->
-      <div class="controls-section">
+      <div class="controls-section" id="filterSection">
         <div class="filter-row">
           <select id="landmarkSelect" class="filter-select" aria-label="Filter by Historical Monument">
             <option value="all">All 17 Historical Monuments &amp; Zones</option>
           </select>
           <select id="cameraSelect" class="filter-select" aria-label="Filter by Camera">
-            <option value="all">All Cameras &amp; Media</option>
+            <option value="all">All Media (Photos &amp; Videos)</option>
             <option value="Samsung Galaxy S25+">Samsung Galaxy S25+ (Photos)</option>
             <option value="Ray-Ban Meta Smart Glasses 2">Ray-Ban Meta Glasses (POV)</option>
-            <option value="video">First-Person Videos Only (18)</option>
+            <option value="video">POV Videos Only (18)</option>
           </select>
         </div>
 
@@ -77,8 +86,8 @@
 
       <!-- Sidebar Tabs -->
       <div class="sidebar-tabs">
-        <button type="button" class="tab-btn active" id="tabLandmarksBtn">Historical Monuments (17)</button>
-        <button type="button" class="tab-btn" id="tabGalleryBtn">Geotagged Gallery (<span id="galleryCountTab">770</span>)</button>
+        <button type="button" class="tab-btn active" id="tabLandmarksBtn">Monuments (17)</button>
+        <button type="button" class="tab-btn" id="tabGalleryBtn">Gallery (<span id="galleryCountTab">770</span>)</button>
       </div>
 
       <!-- Scrollable List Container -->
@@ -88,12 +97,24 @@
       </div>
     </aside>
 
-    <!-- Right Map Stage -->
+    <!-- Right Map Stage (Full screen on mobile) -->
     <main class="map-stage">
       <div id="map" role="application" aria-label="Interactive Map of Historical Khiva"></div>
 
-      <!-- Top Floating Layer & Base Map Controls -->
-      <div class="map-top-bar">
+      <!-- Mobile Top App Bar (Only visible on small screens) -->
+      <div class="mobile-top-bar">
+        <div class="mobile-brand-pill" id="mobileBrandPill">
+          <span>🏛️ Khiva Atlas</span>
+          <span class="count-tag" id="mobileShownCount">770</span>
+        </div>
+        <div class="mobile-top-actions">
+          <button type="button" class="mobile-fab-btn" id="mobileLayersBtn" aria-label="Open Map Layers">🥞</button>
+          <button type="button" class="mobile-fab-btn" id="mobileFitBtn" aria-label="Re-center on Itchan Kala">🎯</button>
+        </div>
+      </div>
+
+      <!-- Desktop Top Floating Controls (Hidden on mobile) -->
+      <div class="map-top-bar desktop-only-controls">
         <div class="map-control-group">
           <button type="button" class="layer-btn active" id="toggleClustersBtn">Photo Pins</button>
           <button type="button" class="layer-btn active" id="toggleLandmarksBtn">Monument Labels</button>
@@ -123,40 +144,131 @@
         <p class="active-landmark-body" id="bannerHistory"></p>
       </div>
 
-      <!-- Bottom Chronological Journey Scrubber -->
-      <div class="timeline-dock">
-        <button type="button" class="play-btn" id="playJourneyBtn">▶ Play Walk</button>
-        <div class="timeline-slider-wrap">
-          <div class="timeline-meta">
-            <span id="scrubberLabel">Scrub Chronological Walk Through Khiva</span>
-            <span id="scrubberTimestamp">Oct 14, 2026 • 12:55 — Oct 15, 2026 • 18:26</span>
-          </div>
-          <input type="range" id="timelineRange" min="0" max="769" value="0" aria-label="Timeline scrubber" />
+      <!-- Mobile Tap Quick Preview Card -->
+      <div class="marker-preview-card" id="markerPreviewCard">
+        <img id="previewCardThumb" src="thumbs/20261015_083121.jpg" alt="Preview" width="60" height="60" />
+        <div class="preview-card-info" id="previewCardInfoClick">
+          <div class="preview-card-title" id="previewCardTitle">Landmark</div>
+          <div class="preview-card-sub" id="previewCardSub">Time • Camera</div>
         </div>
+        <button type="button" class="preview-card-view-btn" id="previewCardViewBtn">View ↗</button>
+        <button type="button" class="preview-card-close-btn" id="previewCardCloseBtn" aria-label="Close preview">✕</button>
+      </div>
+
+      <!-- Chronological Journey Scrubber Dock -->
+      <div class="timeline-dock" id="timelineDock">
+        <div class="timeline-dock-top">
+          <button type="button" class="play-btn" id="playJourneyBtn">▶ Play Walk</button>
+          <div class="timeline-meta-compact">
+            <span id="scrubberLabel">1 / 770 • Walking Route</span>
+            <span id="scrubberTimestamp">Oct 14 • 12:55</span>
+          </div>
+          <button type="button" class="timeline-close-btn" id="timelineCloseBtn" aria-label="Hide walk scrubber">✕</button>
+        </div>
+        <input type="range" id="timelineRange" min="0" max="769" value="0" aria-label="Timeline scrubber" />
       </div>
     </main>
+
+    <!-- Mobile Bottom Navigation Bar (Fixed at bottom on phones) -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav">
+      <button type="button" class="mobile-nav-btn active" data-nav="map">
+        <span class="nav-icon">🗺️</span>
+        <span class="nav-text">Map</span>
+      </button>
+      <button type="button" class="mobile-nav-btn" data-nav="monuments">
+        <span class="nav-icon">🏛️</span>
+        <span class="nav-text">Monuments</span>
+      </button>
+      <button type="button" class="mobile-nav-btn" data-nav="gallery">
+        <span class="nav-icon">📷</span>
+        <span class="nav-text">Photos</span>
+      </button>
+      <button type="button" class="mobile-nav-btn" data-nav="walk">
+        <span class="nav-icon">🚶</span>
+        <span class="nav-text">Walk</span>
+      </button>
+      <button type="button" class="mobile-nav-btn" data-nav="filter">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-text">Filter</span>
+      </button>
+    </nav>
   </div>
 
-  <!-- MANDATORY: Use closedby="any" to enable light-dismiss behavior -->
+  <!-- Mobile Map Layers Modal (<dialog closedby="any">) -->
+  <dialog id="mobileLayersModal" closedby="any" aria-labelledby="layersModalTitle">
+    <div class="mobile-layers-sheet">
+      <div class="sheet-header">
+        <h3 id="layersModalTitle">Map Display &amp; Layers</h3>
+        <form method="dialog">
+          <button type="submit" class="sheet-close-btn">✕</button>
+        </form>
+      </div>
+
+      <div class="sheet-section">
+        <div class="sheet-section-title">Base Map</div>
+        <div class="sheet-grid">
+          <button type="button" class="sheet-option-btn active" data-sheet-basemap="satellite">🛰️ Satellite</button>
+          <button type="button" class="sheet-option-btn" data-sheet-basemap="osm">🗺️ Street Map</button>
+          <button type="button" class="sheet-option-btn" data-sheet-basemap="voyager">📜 Sandstone</button>
+          <button type="button" class="sheet-option-btn" data-sheet-basemap="dark">🌙 Night</button>
+        </div>
+      </div>
+
+      <div class="sheet-section">
+        <div class="sheet-section-title">Overlays &amp; Tracks</div>
+        <div class="sheet-toggle-list">
+          <label class="sheet-toggle-item">
+            <span>📷 Photo Preview Pins</span>
+            <input type="checkbox" id="sheetCheckPins" checked />
+          </label>
+          <label class="sheet-toggle-item">
+            <span>🏛️ Historical Monument Badges</span>
+            <input type="checkbox" id="sheetCheckLabels" checked />
+          </label>
+          <label class="sheet-toggle-item">
+            <span>🧱 Itchan Kala Mud-Brick Walls</span>
+            <input type="checkbox" id="sheetCheckWalls" checked />
+          </label>
+          <label class="sheet-toggle-item">
+            <span>🚶 Chronological Walking Route</span>
+            <input type="checkbox" id="sheetCheckRoute" checked />
+          </label>
+          <label class="sheet-toggle-item">
+            <span>🔥 Photo Density Heatmap</span>
+            <input type="checkbox" id="sheetCheckHeat" />
+          </label>
+        </div>
+      </div>
+
+      <button type="button" class="sheet-action-btn" id="sheetFitKhivaBtn">🎯 Re-center on Itchan Kala</button>
+    </div>
+  </dialog>
+
+  <!-- Fullscreen Media Lightbox Dialog (<dialog closedby="any">) -->
   <dialog id="mediaDialog" closedby="any" aria-labelledby="dialogTitle">
     <div class="dialog-body">
       <div class="dialog-stage">
-        <button type="button" class="nav-arrow prev" id="prevMediaBtn" aria-label="Previous photo">❮</button>
-        <div id="dialogMediaContainer" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>
-        <button type="button" class="nav-arrow next" id="nextMediaBtn" aria-label="Next photo">❯</button>
-      </div>
-      <div class="dialog-meta-panel">
-        <div class="dialog-meta-top">
-          <div class="dialog-header-row">
-            <div>
-              <span class="unesco-badge" id="dialogCategoryBadge">Monument</span>
-              <h2 class="dialog-landmark-title" id="dialogTitle">Landmark Name</h2>
-            </div>
-            <form method="dialog">
-              <button type="submit" class="dialog-close-btn">Esc ✕</button>
+        <!-- Top bar overlay on mobile/desktop -->
+        <div class="dialog-top-overlay">
+          <div class="dialog-title-group">
+            <span class="unesco-badge" id="dialogCategoryBadge">Monument</span>
+            <h2 class="dialog-landmark-title" id="dialogTitle">Landmark Name</h2>
+          </div>
+          <div class="dialog-top-btns">
+            <button type="button" class="dialog-info-toggle-btn" id="dialogInfoToggleBtn" aria-label="Toggle Details">ℹ️ Details</button>
+            <form method="dialog" style="display:inline">
+              <button type="submit" class="dialog-close-btn" aria-label="Close viewer">✕</button>
             </form>
           </div>
+        </div>
 
+        <button type="button" class="nav-arrow prev" id="prevMediaBtn" aria-label="Previous photo">❮</button>
+        <div id="dialogMediaContainer" class="dialog-media-container"></div>
+        <button type="button" class="nav-arrow next" id="nextMediaBtn" aria-label="Next photo">❯</button>
+      </div>
+
+      <div class="dialog-meta-panel" id="dialogMetaPanel">
+        <div class="dialog-meta-top">
           <div class="meta-grid">
             <div class="meta-box">
               <span class="meta-label">Captured</span>
@@ -181,7 +293,7 @@
 
         <div class="dialog-actions">
           <button type="button" class="action-link" id="flyToPinBtn">Locate on Map</button>
-          <a class="action-link" id="openOriginalLink" href="#" target="_blank" rel="noopener">Open Full Resolution</a>
+          <a class="action-link" id="openOriginalLink" href="#" target="_blank" rel="noopener">Full Resolution</a>
         </div>
       </div>
     </div>
