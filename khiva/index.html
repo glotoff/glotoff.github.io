@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Historical Khiva — Interactive Geotagged Atlas of Itchan Kala</title>
+  <!-- Leaflet & Plugins -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Left Sidebar: Historical Monuments & Geotagged Gallery -->
+    <aside class="sidebar">
+      <div class="hero-banner">
+        <!-- MANDATORY: Elevate priority for the LCP candidate image without loading="lazy" -->
+        <img
+          src="thumbs/20261015_083121.jpg"
+          alt="Panoramic skyline of Itchan Kala in Historical Khiva"
+          fetchpriority="high"
+          width="420"
+          height="175"
+        />
+        <div class="hero-overlay">
+          <span class="unesco-badge">UNESCO World Heritage • Itchan Kala</span>
+          <h1 class="hero-title">Historical Khiva Atlas</h1>
+          <p class="hero-subtitle">770 Geotagged Photos &amp; First-Person Videos • Oct 14–15, 2026</p>
+        </div>
+      </div>
+
+      <!-- Summary Stats -->
+      <div class="stats-strip">
+        <div class="stat-pill">
+          <span class="stat-value" id="statVisibleCount">770</span>
+          <span class="stat-label">Shown</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-value" id="statMonumentCount">17</span>
+          <span class="stat-label">Monuments</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-value">2 Days</span>
+          <span class="stat-label">Oct 14–15</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-value">2 Cams</span>
+          <span class="stat-label">S25+ &amp; Meta</span>
+        </div>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="controls-section">
+        <div class="filter-row">
+          <select id="landmarkSelect" class="filter-select" aria-label="Filter by Historical Monument">
+            <option value="all">All 17 Historical Monuments &amp; Zones</option>
+          </select>
+          <select id="cameraSelect" class="filter-select" aria-label="Filter by Camera">
+            <option value="all">All Cameras &amp; Media</option>
+            <option value="Samsung Galaxy S25+">Samsung Galaxy S25+ (Photos)</option>
+            <option value="Ray-Ban Meta Smart Glasses 2">Ray-Ban Meta Glasses (POV)</option>
+            <option value="video">First-Person Videos Only (18)</option>
+          </select>
+        </div>
+
+        <div class="chip-group" role="group" aria-label="Filter by Day and Time of Day">
+          <button type="button" class="chip-btn active" data-filter-time="all">All Times</button>
+          <button type="button" class="chip-btn" data-filter-time="day1">Day 1 (Oct 14)</button>
+          <button type="button" class="chip-btn" data-filter-time="day2">Day 2 (Oct 15)</button>
+          <button type="button" class="chip-btn" data-filter-time="morning">Morning</button>
+          <button type="button" class="chip-btn" data-filter-time="midday">Midday</button>
+          <button type="button" class="chip-btn" data-filter-time="golden_hour">Golden Hour</button>
+          <button type="button" class="chip-btn" data-filter-time="night">Night Illuminated</button>
+        </div>
+      </div>
+
+      <!-- Sidebar Tabs -->
+      <div class="sidebar-tabs">
+        <button type="button" class="tab-btn active" id="tabLandmarksBtn">Historical Monuments (17)</button>
+        <button type="button" class="tab-btn" id="tabGalleryBtn">Geotagged Gallery (<span id="galleryCountTab">770</span>)</button>
+      </div>
+
+      <!-- Scrollable List Container -->
+      <div class="sidebar-content" id="sidebarContent">
+        <div id="landmarksView" class="landmarks-list"></div>
+        <div id="galleryView" class="photo-grid" style="display: none;"></div>
+      </div>
+    </aside>
+
+    <!-- Right Map Stage -->
+    <main class="map-stage">
+      <div id="map" role="application" aria-label="Interactive Map of Historical Khiva"></div>
+
+      <!-- Top Floating Layer & Base Map Controls -->
+      <div class="map-top-bar">
+        <div class="map-control-group">
+          <button type="button" class="layer-btn active" id="toggleClustersBtn">Photo Pins</button>
+          <button type="button" class="layer-btn active" id="toggleLandmarksBtn">Monument Labels</button>
+          <button type="button" class="layer-btn active" id="toggleWallsBtn">Itchan Kala Walls</button>
+          <button type="button" class="layer-btn active" id="togglePathBtn">Walking Route</button>
+          <button type="button" class="layer-btn" id="toggleHeatBtn">Density Heatmap</button>
+          <button type="button" class="layer-btn" id="resetViewBtn">Fit Itchan Kala</button>
+        </div>
+
+        <div class="map-control-group">
+          <button type="button" class="layer-btn active" data-basemap="satellite">Satellite</button>
+          <button type="button" class="layer-btn" data-basemap="osm">Detailed Map</button>
+          <button type="button" class="layer-btn" data-basemap="voyager">Sandstone Atlas</button>
+          <button type="button" class="layer-btn" data-basemap="dark">Night Map</button>
+        </div>
+      </div>
+
+      <!-- Active Monument Info Overlay -->
+      <div class="active-landmark-card" id="activeLandmarkBanner">
+        <div class="active-landmark-header">
+          <div>
+            <div class="active-landmark-title" id="bannerTitle"></div>
+            <div class="active-landmark-uzbek" id="bannerUzbek"></div>
+          </div>
+          <button type="button" class="close-banner-btn" id="closeBannerBtn" aria-label="Clear monument selection">✕</button>
+        </div>
+        <p class="active-landmark-body" id="bannerHistory"></p>
+      </div>
+
+      <!-- Bottom Chronological Journey Scrubber -->
+      <div class="timeline-dock">
+        <button type="button" class="play-btn" id="playJourneyBtn">▶ Play Walk</button>
+        <div class="timeline-slider-wrap">
+          <div class="timeline-meta">
+            <span id="scrubberLabel">Scrub Chronological Walk Through Khiva</span>
+            <span id="scrubberTimestamp">Oct 14, 2026 • 12:55 — Oct 15, 2026 • 18:26</span>
+          </div>
+          <input type="range" id="timelineRange" min="0" max="769" value="0" aria-label="Timeline scrubber" />
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MANDATORY: Use closedby="any" to enable light-dismiss behavior -->
+  <dialog id="mediaDialog" closedby="any" aria-labelledby="dialogTitle">
+    <div class="dialog-body">
+      <div class="dialog-stage">
+        <button type="button" class="nav-arrow prev" id="prevMediaBtn" aria-label="Previous photo">❮</button>
+        <div id="dialogMediaContainer" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>
+        <button type="button" class="nav-arrow next" id="nextMediaBtn" aria-label="Next photo">❯</button>
+      </div>
+      <div class="dialog-meta-panel">
+        <div class="dialog-meta-top">
+          <div class="dialog-header-row">
+            <div>
+              <span class="unesco-badge" id="dialogCategoryBadge">Monument</span>
+              <h2 class="dialog-landmark-title" id="dialogTitle">Landmark Name</h2>
+            </div>
+            <form method="dialog">
+              <button type="submit" class="dialog-close-btn">Esc ✕</button>
+            </form>
+          </div>
+
+          <div class="meta-grid">
+            <div class="meta-box">
+              <span class="meta-label">Captured</span>
+              <span class="meta-val" id="dialogDateVal"></span>
+            </div>
+            <div class="meta-box">
+              <span class="meta-label">GPS Coordinates</span>
+              <span class="meta-val" id="dialogCoordsVal"></span>
+            </div>
+            <div class="meta-box">
+              <span class="meta-label">Camera Device</span>
+              <span class="meta-val" id="dialogCameraVal"></span>
+            </div>
+            <div class="meta-box">
+              <span class="meta-label">File &amp; Resolution</span>
+              <span class="meta-val" id="dialogFileVal"></span>
+            </div>
+          </div>
+
+          <div class="dialog-history-box" id="dialogHistoryText"></div>
+        </div>
+
+        <div class="dialog-actions">
+          <button type="button" class="action-link" id="flyToPinBtn">Locate on Map</button>
+          <a class="action-link" id="openOriginalLink" href="#" target="_blank" rel="noopener">Open Full Resolution</a>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
