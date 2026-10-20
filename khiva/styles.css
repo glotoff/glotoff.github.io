@@ -513,6 +513,28 @@ img {
   margin-top: 6px;
 }
 
+.banner-photos-btn {
+  margin-top: 10px;
+  width: 100%;
+  background: linear-gradient(135deg, #0284c7, #0d9488);
+  border: none;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: opacity 0.15s;
+}
+
+.banner-photos-btn:active {
+  opacity: 0.85;
+}
+
 /* Marker Preview Card */
 .marker-preview-card {
   display: none;
@@ -674,6 +696,8 @@ img {
   overflow: hidden;
   background: #0f172a;
   position: relative;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
 .photo-marker-pin.is-video {
@@ -684,6 +708,7 @@ img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  pointer-events: none;
 }
 
 .photo-cluster-icon {
@@ -695,6 +720,8 @@ img {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
   overflow: hidden;
   background: #0f172a;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
 .photo-cluster-icon img {
@@ -702,6 +729,7 @@ img {
   height: 100%;
   object-fit: cover;
   filter: brightness(0.85);
+  pointer-events: none;
 }
 
 .photo-cluster-count {
@@ -715,6 +743,7 @@ img {
   font-weight: 800;
   padding: 1px 5px;
   border-radius: 999px;
+  pointer-events: none;
 }
 
 .landmark-map-badge {
@@ -731,6 +760,29 @@ img {
   white-space: nowrap;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
   transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.landmark-map-pin-mobile {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.92);
+  border: 2px solid var(--gold);
+  color: #fff;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.landmark-map-pin-mobile:active {
+  transform: scale(1.15);
 }
 
 .traveler-pulse {

@@ -152,17 +152,22 @@
   // Render Historical Monument Labels on Map
   function renderLandmarkMarkers() {
     landmarksLayer.clearLayers();
+    const isMob = isMobile();
     data.landmarks.forEach((lm) => {
       if (lm.id === "urgench-arrival" && state.landmarkId !== "urgench-arrival") {
         return;
       }
       const icon = L.divIcon({
-        html: `<div class="landmark-map-badge" style="border-color:${lm.color}">🏛️ ${lm.name.split("(")[0].trim()} <span style="opacity:0.75">(${lm.count})</span></div>`,
+        html: isMob
+          ? `<div class="landmark-map-pin-mobile" style="border-color:${lm.color}" title="${lm.name}">🏛️</div>`
+          : `<div class="landmark-map-badge" style="border-color:${lm.color}">🏛️ ${lm.name.split("(")[0].trim()} <span style="opacity:0.75">(${lm.count})</span></div>`,
         className: "",
-        iconSize: [0, 0],
+        iconSize: isMob ? [28, 28] : [0, 0],
+        iconAnchor: isMob ? [14, 14] : [0, 0],
       });
-      const marker = L.marker([lm.lat, lm.lon], { icon, zIndexOffset: 500 });
-      marker.on("click", () => {
+      const marker = L.marker([lm.lat, lm.lon], { icon, zIndexOffset: 150 });
+      marker.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);
         selectLandmark(lm.id, true);
       });
       landmarksLayer.addLayer(marker);
@@ -237,7 +242,7 @@
         iconAnchor: [21, 21],
       });
 
-      const m = L.marker([it.lat, it.lon], { icon, itemData: it });
+      const m = L.marker([it.lat, it.lon], { icon, itemData: it, zIndexOffset: 300 });
       const lm = landmarkMap.get(it.landmarkId);
 
       if (!isMobile()) {
@@ -249,7 +254,7 @@
 
       m.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
-        showMarkerPreview(it, idx);
+        openMediaDialog(idx);
       });
       return m;
     });
@@ -291,45 +296,21 @@
     }
   }
 
-  // Show Marker Preview Card (Mobile bottom preview, or direct desktop open)
-  function showMarkerPreview(item, idx) {
-    state.currentPreviewItem = { item, idx };
-    const card = document.getElementById("markerPreviewCard");
-    const thumb = document.getElementById("previewCardThumb");
-    const title = document.getElementById("previewCardTitle");
-    const sub = document.getElementById("previewCardSub");
-    const lm = landmarkMap.get(item.landmarkId);
-
-    thumb.src = item.thumb;
-    title.textContent = lm ? lm.name : "Historical Khiva";
-    sub.textContent = `${formatDateTime(item.dt)} • ${item.type === "video" ? "🎥 POV Video" : "📷 Photo"}`;
-
-    card.classList.add("visible");
-
-    // On mobile, pan map slightly so marker isn't covered by bottom card
-    if (isMobile()) {
-      map.panTo([item.lat, item.lon], { animate: true });
-    } else {
-      openMediaDialog(idx);
-    }
+  // Active Landmark "View Photos" button handler
+  const bannerPhotosBtn = document.getElementById("bannerPhotosBtn");
+  if (bannerPhotosBtn) {
+    bannerPhotosBtn.addEventListener("click", (e) => {
+      L.DomEvent.stopPropagation(e);
+      if (state.filteredItems.length > 0) {
+        openMediaDialog(0);
+      }
+    });
   }
 
-  document.getElementById("previewCardCloseBtn").addEventListener("click", () => {
-    document.getElementById("markerPreviewCard").classList.remove("visible");
-    state.currentPreviewItem = null;
-  });
-
-  function openCurrentPreviewDialog() {
-    if (state.currentPreviewItem) {
-      openMediaDialog(state.currentPreviewItem.idx);
-    }
-  }
-
-  document.getElementById("previewCardViewBtn").addEventListener("click", openCurrentPreviewDialog);
-  document.getElementById("previewCardInfoClick").addEventListener("click", openCurrentPreviewDialog);
-
+  // Dismiss Landmark Banner when tapping map
   map.on("click", () => {
-    document.getElementById("markerPreviewCard").classList.remove("visible");
+    const banner = document.getElementById("activeLandmarkBanner");
+    if (banner) banner.classList.remove("visible");
   });
 
   // Render Historical Monuments List in Sidebar
@@ -429,6 +410,8 @@
         document.getElementById("bannerTitle").textContent = `${lm.name} (${lm.era})`;
         document.getElementById("bannerUzbek").textContent = `${lm.uzbekName} • ${lm.category}`;
         document.getElementById("bannerHistory").textContent = `${lm.summary} ${lm.history}`;
+        const countSpan = document.getElementById("bannerPhotosCount");
+        if (countSpan) countSpan.textContent = lm.count;
         banner.classList.add("visible");
         if (fly) {
           map.flyTo([lm.lat, lm.lon], isMobile() ? 18 : 19, { duration: 0.8 });
@@ -685,7 +668,8 @@
   function openMobileDrawer(tab) {
     sidebarDrawer.classList.add("drawer-open");
     document.getElementById("timelineDock").classList.remove("mobile-active");
-    document.getElementById("markerPreviewCard").classList.remove("visible");
+    const banner = document.getElementById("activeLandmarkBanner");
+    if (banner) banner.classList.remove("visible");
 
     if (tab === "monuments") {
       tabLandmarksBtn.click();
