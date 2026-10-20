@@ -262,22 +262,36 @@
     clusterGroup.addLayers(markers);
 
     if (day1Coords.length > 1) {
+      // High-contrast dark casing for bright satellite sand
       L.polyline(day1Coords, {
-        color: "#38bdf8",
-        weight: isMobile() ? 2.5 : 3,
-        opacity: 0.72,
-        dashArray: "4, 6",
+        color: "#020617",
+        weight: isMobile() ? 5.5 : 6,
+        opacity: 0.65,
+      }).addTo(pathLayer);
+
+      L.polyline(day1Coords, {
+        color: "#1d4ed8",
+        weight: isMobile() ? 3 : 3.5,
+        opacity: 0.95,
+        dashArray: "7, 4",
       })
         .bindTooltip("Day 1 Walking Track (Oct 14, 2026)")
         .addTo(pathLayer);
     }
 
     if (day2Coords.length > 1) {
+      // High-contrast dark casing for bright satellite sand
       L.polyline(day2Coords, {
-        color: "#34d399",
-        weight: isMobile() ? 2.5 : 3,
-        opacity: 0.72,
-        dashArray: "4, 6",
+        color: "#020617",
+        weight: isMobile() ? 5.5 : 6,
+        opacity: 0.65,
+      }).addTo(pathLayer);
+
+      L.polyline(day2Coords, {
+        color: "#047857",
+        weight: isMobile() ? 3 : 3.5,
+        opacity: 0.95,
+        dashArray: "7, 4",
       })
         .bindTooltip("Day 2 Walking Track (Oct 15, 2026)")
         .addTo(pathLayer);
