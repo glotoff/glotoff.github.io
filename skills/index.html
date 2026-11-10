@@ -43,8 +43,11 @@
       <a class="btn" href="photo-trip-documentary-video/SKILL.txt">View SKILL.md (text)</a>
       <a class="btn" href="photo-trip-documentary-video/reference.txt">Pitfalls &amp; YouTube steps</a>
     </div>
+    <p style="margin:16px 0 6px;font-size:14px;color:#94a3b8">One-command install (needs Node.js):</p>
+    <pre>npx -y https://glotoff.github.io/skills/photo-trip-documentary-video.tgz</pre>
+    <p style="font-size:13px;color:#94a3b8;margin:6px 0 0">Installs to <code>~/.claude/skills/photo-trip-documentary-video</code>. Add <code>--project</code> for the current project only, <code>--dir &lt;folder&gt;</code> for another agent, <code>--force</code> to overwrite.</p>
     <details>
-      <summary>How to install</summary>
+      <summary>Manual install</summary>
       <p><b>Claude Code:</b> unzip into <code>~/.claude/skills/</code> (all projects) or <code>.claude/skills/</code> (one project) so you get <code>photo-trip-documentary-video/SKILL.md</code>, then ask: &ldquo;Make a documentary video from my trip photos.&rdquo;</p>
       <p><b>Other agents / chat tools:</b> unzip anywhere, tell the agent to read <code>SKILL.md</code> and follow it, and give it shell access to the folder. Set <code>TRIP_ROOT</code> to your project folder and <code>GEMINI_API_KEY</code> in the environment.</p>
 <pre>unzip photo-trip-documentary-video.zip -d ~/.claude/skills/</pre>
