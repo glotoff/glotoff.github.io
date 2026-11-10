@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skills · glotoff.github.io</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 48px 20px 80px; }
+    main { max-width: 760px; margin: 0 auto; }
+    a { color: #38bdf8; }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    .sub { color: #94a3b8; margin: 0 0 32px; line-height: 1.5; }
+    .back { display: inline-block; margin-bottom: 24px; font-size: 14px; text-decoration: none; }
+    .skill { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px 22px; margin-bottom: 20px; }
+    .skill h2 { margin: 0 0 4px; font-size: 20px; color: #38bdf8; }
+    .meta { font-size: 12px; color: #94a3b8; margin-bottom: 12px; }
+    .skill p { line-height: 1.55; margin: 0 0 14px; color: #e2e8f0; font-size: 15px; }
+    .tags span { display: inline-block; font-size: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 999px; padding: 3px 10px; margin: 0 6px 6px 0; color: #94a3b8; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 4px; }
+    .btn { display: inline-block; text-decoration: none; font-weight: bold; font-size: 14px; padding: 10px 16px; border-radius: 8px; border: 1px solid #38bdf8; color: #38bdf8; }
+    .btn.primary { background: #38bdf8; color: #0f172a; }
+    .btn:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
+    details { margin-top: 14px; color: #cbd5e1; font-size: 14px; line-height: 1.55; }
+    summary { cursor: pointer; color: #94a3b8; }
+    code, pre { background: #0f172a; border: 1px solid #334155; border-radius: 6px; font-size: 13px; }
+    code { padding: 1px 5px; }
+    pre { padding: 10px 12px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+<main>
+  <a class="back" href="../">&larr; glotoff.github.io</a>
+  <h1>Skills</h1>
+  <p class="sub">Reusable skills for Claude and other AI agents. Each skill is a folder with a <code>SKILL.md</code> (instructions), scripts and references. Download the zip and unpack it where your agent looks for skills.</p>
+
+  <section class="skill" id="photo-trip-documentary-video">
+    <h2>Photo trip documentary video</h2>
+    <div class="meta">photo-trip-documentary-video &middot; added 2026-11-10 &middot; ~50 KB zip</div>
+    <p>Turn a folder of trip photos and short clips (with GPS) into a 30&ndash;35 minute documentary: curated shots, location-based captions, music with ducking, AI narration in two languages (two audio tracks), two subtitle tracks, animated title/chapter/map cards, and a ready-to-upload YouTube package. Includes the pitfalls that cost the most time: spoken TTS prompts, noise bursts and clicks, VLC colour issues, subtitle encodings and YouTube track handling.</p>
+    <div class="tags"><span>ffmpeg</span><span>Gemini TTS</span><span>Remotion</span><span>subtitles</span><span>YouTube</span><span>multi-language audio</span></div>
+    <div class="actions">
+      <a class="btn primary" href="photo-trip-documentary-video.zip" download>Download skill (.zip)</a>
+      <a class="btn" href="photo-trip-documentary-video/SKILL.md">View SKILL.md</a>
+      <a class="btn" href="photo-trip-documentary-video/reference.md">Pitfalls &amp; YouTube steps</a>
+    </div>
+    <details>
+      <summary>How to install</summary>
+      <p><b>Claude Code:</b> unzip into <code>~/.claude/skills/</code> (all projects) or <code>.claude/skills/</code> (one project) so you get <code>photo-trip-documentary-video/SKILL.md</code>, then ask: &ldquo;Make a documentary video from my trip photos.&rdquo;</p>
+      <p><b>Other agents / chat tools:</b> unzip anywhere, tell the agent to read <code>SKILL.md</code> and follow it, and give it shell access to the folder. Set <code>TRIP_ROOT</code> to your project folder and <code>GEMINI_API_KEY</code> in the environment.</p>
+<pre>unzip photo-trip-documentary-video.zip -d ~/.claude/skills/</pre>
+      <p>Needs ffmpeg, Python 3.10+ (Pillow, numpy, imagehash, google-genai), exiftool, and optionally Node + Remotion for animated cards. Music in the original film is Kevin MacLeod (CC BY 4.0), so credit is required.</p>
+    </details>
+  </section>
+</main>
+</body>
+</html>
