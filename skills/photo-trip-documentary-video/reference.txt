@@ -1,6 +1,6 @@
-# Reference: pitfalls, fixes and publishing
+# Reference: pitfalls, fixes and publishing (v1.1)
 
-Everything below was learned the hard way while building the Uzbekistan 2026 film. Each item = symptom -> cause -> fix.
+Everything below was learned the hard way in two real builds (a 31-minute and a ~2-hour film). Each item = symptom -> cause -> fix.
 
 ## Narration (Gemini TTS)
 | Symptom | Cause | Fix |
@@ -46,6 +46,62 @@ Mixing models between clips changes the voice; keep one model for all clips of a
 4. Check signed-out: gear -> Subtitles and Audio track; then set Public.
 Automation: YouTube Data API v3 (`videos.insert`, `captions.insert`, `thumbnails.set`) can upload video + subtitles; extra audio tracks
 are, to my knowledge, Studio-only. Uploads from unaudited API projects may be forced private.
+
+## Photo selection: repeated-looking shots (biggest lesson of the 2-hour build)
+- Symptom: the film shows several near-identical shots in a row (same rock from slightly different angles).
+- Cause: global pHash (8x8, threshold ~14 bits, compared only inside one GPS stop against the last 6 picks) scores re-framed
+  shots 20-40 bits apart; GPS jitter splits one scene into two stops (never compared); clips were never compared with photos.
+- Fix (`scripts/02b_dedupe_embeddings.py`): DINOv2-small embedding per thumbnail (224x224 bicubic, ImageNet mean/std, CLS token,
+  L2-normalised), greedy by sharpness, drop if cosine >= 0.90 with any kept item within 30 minutes (no cross-day compare needed).
+  Measured: 2,906 non-blurry candidates -> 1,932 kept at 0.90 (2,118 at 0.92).
+- DINOv2 scores are high for any landscape, so do not trust the distribution: look at the calibration sheet (pairs per score band)
+  and decide by eye. Tell the user up front that strict dedupe shortens the film (135 -> 108 min at 2.5 s/photo); options: shorter
+  film, or 3 s per photo with a looser threshold. Do not backfill with similar photos.
+- Still open: embed one keyframe per clip (`CLIPS=1`) so clips are compared with photos and each other; the embedding script
+  here is a cleaned re-implementation - its selection logic was tested with stand-in vectors, the DINOv2 step itself must be run
+  and checked on a small sample first.
+
+## Pipeline hygiene
+- Keep each step a script with a cache; key caches by file name. Embeddings in `embeddings.npz`, geocoding in `geocache.json`.
+- Segments are stored per unit; when the selection changes the unit indices change -> rebuild or key by file name.
+- Use `ffprobe` on every rendered segment for the real duration; metadata durations were off by up to a few frames and the video
+  came out 5 s shorter than the timeline.
+- One env var for the build folder (`TRIP_BUILD`) lets you start a clean build (`build` -> `build4`) without editing scripts.
+- Windows: ffmpeg from winget lives in `%LOCALAPPDATA%\Microsoft\WinGet\Links` (add to PATH in each shell); exiftool via `EXIFTOOL`;
+  the scripts read media from `MEDIA_DIR` (default `photos-and-videos`; a folder junction also works).
+- This ffmpeg build rejected `-filter_complex_script`; use `-/filter_complex <file>` for long graphs.
+
+## Narration generation (large films)
+- Facts: `gemini-3.8-flash` with the `google_search` tool gave grounded stories (144 of 155 had sources); `gemini-2.5-flash` also works;
+  `gemini-3.8-pro` returned 404 on one key. Ask for TOPIC/EN/RU lines only, omit unverifiable claims, names, ages, private details.
+- Length control: ~2.35 EN words/s, ~1.95 RU words/s - give the model the word target per scene, reject outputs < 60% of it.
+- TTS in bulk: Batch API (`batchGenerateContent`, voice Charon, `responseModalities: AUDIO`). Synchronous REST hit 429 after ~26
+  clips; the Python SDK rejected `speechConfig` once (400) -> use REST. 155 clips/language took ~10 min in one batch.
+  Response audio is WAV (strip RIFF header) or raw PCM.
+- Verification: speech-to-text of spread samples (`gemini-2.5-flash`, mp3 at 64 kbps) vs the script: 0.84-0.96 similarity is fine.
+
+## Audio mix details
+- Trim leading/trailing silence of each music track before looping (silenceremove + areverse trick); untrimmed edges made 2-3 s gaps.
+- With `-ss` offsets the loop duration must shrink by the offset, otherwise the bed is shorter than the film (8 minutes lost once).
+  Assert bed >= film length. Add `-t <total>` on the output.
+- Ducking: `sidechaincompress` threshold 0.02, ratio 8-10, attack 20 ms, release 500-700 ms; narration gain ~1.6, music ~0.8.
+- Final chain `loudnorm=I=-17:TP=-2:LRA=9` then `alimiter`. A low ceiling and short attack worked: `limit=0.55:attack=1:release=50`
+  gave peaks of -3.3/-3.4 dBFS; the default 0.7 let one language reach +0.1 dBFS after AAC. Always measure the encoded file
+  (`ebur128=peak=true`): target -17 LUFS, peak <= -2 dBFS.
+
+## Maps, chapters, cards
+- Route map: equirectangular on a country/state GeoJSON drawn with Pillow; route = in-region stops in time order (out-of-region stops
+  get no minimap). Animate by piping rawvideo frames to ffmpeg. Chapter interlude: ~4 s map of the location; 280 px minimap
+  overlay per stop; the chapter description overlays the chapter's first photo for the whole narration (pick it by file name).
+- End-card credit text wider than ~1,700 px must wrap onto two lines; check the last frame - outro text gets cut off otherwise.
+- Known rough spots: straight-line routes with stray GPS spurs; indoor/car photos make poor chapter openers; facts come from
+  search grounding, not a fact-check (tell the user to spot-check); the tooling cannot listen to the result - the user must
+  check voice quality and balance.
+
+## Packaging extras
+- Add chapter timestamps (from `timeline.json`) to `youtube/README.txt` for the video description.
+- Sidecar SRTs: UTF-8 with BOM and CRLF for Windows players; plain UTF-8 for YouTube.
+- Say in the README which stories are grounded and which are general local colour.
 
 ## Security
 - API keys only in environment variables, inline per command; never in files, logs or commits. Rotate keys that were pasted into chat.
